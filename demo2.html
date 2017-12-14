@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+		<title>左滑删除</title>
+		<style>
+			html, body {
+				margin: 0;
+				padding: 0;
+				width: 100%;
+				height: 100%;
+			}
+			.container {
+				width: 100%;
+				height: 100%;
+				overflow: hidden;
+			}
+			.container .slide-wrapper {
+				position: relative;
+				width: 100%;
+				height: 100px;
+				border-top: 1px solid #aaa;
+				overflow: hidden;
+			}
+			.container .slide-wrapper .show {
+				position: absolute;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: #fcc;	
+				transition: all 0.5s ease;
+			}
+			
+			.container .slide-wrapper .hidden {
+				position: absolute;
+				right: -100px;
+				width: 100px;
+				height: 100%;
+				background: #f00;
+				transition: all 0.5s ease;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<div class="slide-wrapper">
+				<div class="show">
+					显示的部分
+				</div>
+				<div class="hidden">
+					隐藏的部分
+				</div>
+			</div>	
+			<div class="slide-wrapper">
+				<div class="show">
+					显示的部分
+				</div>
+				<div class="hidden">
+					隐藏的部分
+				</div>
+			</div>
+		</div>
+		
+		<script type="text/javascript">
+			window.onload = function() {
+				var slideWrappers = document.getElementsByClassName('slide-wrapper');
+				var pressObj,
+					lastPressObj,
+					slide,
+					start;
+				for(var i=0; i<slideWrappers.length; i++) {
+					slideWrappers[i].addEventListener('touchstart', function(e){
+						if(e.target.classname !== 'hidden') {	// 如果点击的不是删除按钮
+							pressObj = this;		// 记录当前选择的对象
+							start = {				// 记录起始位置
+								x: e.touches[0].pageX,
+								y: e.touches[0].pageY
+							}	
+						}
+					});
+					
+					slideWrappers[i].addEventListener('touchmove', function(e){
+						if(e.target.classname !== 'hidden') {	// 如果点击的不是删除按钮
+							slide = {
+								x: e.touches[0].pageX - start.x,
+								y: e.touches[0].pageY - start.y
+							}
+							// 横向位移大于纵向位移，阻止纵向滚动
+							if (Math.abs(slide.x) > Math.abs(slide.y)){
+								e.preventDefault();
+							}
+						}
+					});
+					
+					slideWrappers[i].addEventListener('touchend', function(e){
+						if(e.target.classname !== 'hidden') {	// 如果点击的不是删除按钮
+							var lastShow, lastHidden, show, hidden;
+							// 如果当前左滑的元素和上次点击左滑的元素不同， 则上一次选择的元素位置要复原
+							if(lastPressObj && pressObj !== lastPressObj) {		
+								lastShow = lastPressObj.getElementsByClassName('show')[0],
+								lastHidden = lastPressObj.getElementsByClassName('hidden')[0];	
+								lastShow.style.left = 0;
+								lastHidden.style.right = -100 + 'px';
+								lastPressObj = null;
+							}
+							
+							show = pressObj.getElementsByClassName('show')[0],
+							hidden = pressObj.getElementsByClassName('hidden')[0];	
+							if (slide.x < -50) {	//左滑
+								show.style.left = -100 + 'px';
+								hidden.style.right = 0;
+								if(lastPressObj && lastPressObj !== pressObj ){
+									lastShow = lastPressObj.getElementsByClassName('show')[0],
+									lastHidden = lastPressObj.getElementsByClassName('hidden')[0];	
+									lastShow.style.left = 0;
+									lastHidden.style.right = -100 + 'px';		
+								}
+								lastPressObj = pressObj;		// 将此次左滑的元素记录为上一次左滑的元素
+							} else if (slide.x > 50) {	// 右滑
+								if(pressObj === lastPressObj) {
+									show.style.left = 0;
+									hidden.style.right = -100 + 'px';
+								}
+								lastPressObj = null;
+							}
+						}
+						slide = {x:0, y:0};
+					});
+					
+				}
+			}
+		</script>
+	</body>
+</html>
