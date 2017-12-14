@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+		<title>左滑删除</title>
+		<style>
+			html, body {
+				margin: 0;
+				padding: 0;
+				width:100%;
+				height: 100%;
+			}
+			.container-wrapper {
+				width: 100%;
+				overflow: hidden;
+			}
+			
+			.container-wrapper .slide-wrapper {
+				width: 100%;
+				height: 100px;
+				overflow: hidden;
+			}
+			
+			.container-wrapper .slide-wrapper .scroll-wrapper {
+				height: 100%;
+				clear: both;
+				white-space: nowrap;
+			    transition: all 0.5s ease;
+			}
+			.container-wrapper .slide-wrapper .scroll-wrapper .show {
+				float: left;
+				height: 100%;
+				background: #fcc;
+			}
+			.container-wrapper .slide-wrapper .scroll-wrapper .hidden {
+				float: left;
+				width: 100px;
+				height: 100%;
+				background: #f00;
+			}
+		</style>
+	</head>
+	<body>
+		
+		<div class="container-wrapper">
+			<div class="slide-wrapper">
+				<div class="scroll-wrapper">
+					<div class="show">
+					显示的部分
+					</div>
+					<div class="hidden">
+						隐藏的部分
+					</div>		
+				</div>
+			</div>	
+			
+			<div class="slide-wrapper">
+				<div class="scroll-wrapper">
+					<div class="show">
+					显示的部分
+					</div>
+					<div class="hidden">
+						隐藏的部分
+					</div>		
+				</div>
+			</div>	
+			
+		</div>
+		
+		<script>
+			window.onload = function() {
+				var slideWrappers = document.getElementsByClassName('slide-wrapper'),
+					scrollWrappers = document.getElementsByClassName('scroll-wrapper'),
+					showEles = document.getElementsByClassName('show');
+					hiddenEles = document.getElementsByClassName('hidden');
+				for(var i=0; i<scrollWrappers.length; i++){
+					// 显示的部分为屏幕的总宽度
+					showEles[i].style.width = parseInt(slideWrappers[i].scrollWidth) + 'px';
+					
+					// 滑动区域的宽度设置为 屏幕总宽度加上隐藏的按钮的总宽度
+					scrollWrappers[i].style.width = parseInt(slideWrappers[i].scrollWidth) + parseInt(hiddenEles[i].scrollWidth) + 'px';
+				}
+				
+				var len = showEles.length;
+				
+				var pressObj,		// 当前选择要左滑的对象
+					lastPressObj,	// 上一次选择左滑的对象
+					start,			// 记录按下的位置
+					slide = {x:0,y:0};			// 手滑动的距离
+				for(var i=0; i<len; i++) {
+					scrollWrappers[i].addEventListener('touchstart', function(e){
+						pressObj = this;		// 记录当前选择的对象
+						start = {				// 记录起始位置
+							x: e.touches[0].pageX,
+							y: e.touches[0].pageY
+						}
+					});
+					
+					scrollWrappers[i].addEventListener('touchmove', function(e){
+						slide = {		// 计算滑动的距离
+							x: e.touches[0].pageX - start.x,
+							y: e.touches[0].pageY - start.y
+						}
+						// 横向位移大于纵向位移，阻止纵向滚动
+						if (Math.abs(slide.x) > Math.abs(slide.y)){
+							e.preventDefault();
+						}
+					});
+					
+					scrollWrappers[i].addEventListener('touchend', function(e){
+						// 如果当前左滑的元素和上次点击左滑的元素不同， 则上一次选择的元素位置要复原
+						if(lastPressObj && pressObj !== lastPressObj) {		
+							lastPressObj.style.marginLeft = 0;		
+							lastPressObj = null;
+						}
+						if(slide.x < -50) {		// 左滑
+							pressObj.style.marginLeft = -100 + 'px';
+							// 如果当前左滑的元素和上次点击左滑的元素不同， 则上一次选择的元素位置要复原
+							lastPressObj && lastPressObj !== pressObj && (lastPressObj.style.marginLeft = 0);
+							lastPressObj = pressObj;		// 将此次左滑的元素记录为上一次左滑的元素
+						} else if (slide.x > 50) {	// 右滑
+							if(pressObj === lastPressObj) {
+								pressObj.style.marginLeft = 0;
+								lastPressObj = null;
+							}
+						}
+						slide = {x:0, y:0};		// 手离开后记录的移动距离要复原
+					});
+					
+					hiddenEles[i].addEventListener('click', function(e){
+						var flag = confirm('确定要删除吗?');
+						var parent = this;
+						while(parent.className !== 'slide-wrapper') {
+							parent = parent.parentNode;
+						}
+						if(flag) {
+							parent.style.display = 'none';
+						}
+					});
+					
+					
+				}
+			}
+			
+				
+		</script>
+		
+		
+	</body>
+</html>
